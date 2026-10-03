@@ -1,7 +1,7 @@
 export const BASE = 'https://app.demiplane.com/nexus/pathfinder2e/creatures/';
 export function normalize(name) {
   return String(name).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/[â€™']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    .replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 }
 export function candidates(name, remaster) {
   const names = [name];
@@ -17,15 +17,6 @@ export function sourceSlug(value) {
       !/^\/nexus\/pathfinder2e\/creatures\/[a-z0-9-]+\/?$/.test(url.pathname))
     throw new Error('Paste a Demiplane Pathfinder 2e creature page link.');
   return url.pathname.split('/').filter(Boolean).at(-1);
-}
-export function dragonArtworkCandidates(name, remaster) {
-  const family = normalize(name).replace(/^(young|adult|ancient) /, '');
-  if (!/^[a-z0-9 ]+ dragon$/.test(family)) return [];
-  return ['adult', 'young', 'ancient'].flatMap(age => {
-    const relatedName = age + ' ' + family;
-    return relatedName === normalize(name) ? [] : candidates(relatedName, remaster)
-      .map(slug => ({slug, name: relatedName}));
-  });
 }
 export function imageURL(value) {
   if (typeof value !== 'string' || !value.trim()) return null;
@@ -60,25 +51,9 @@ export function pageObjects(html) {
       } catch { /* unsupported data */ }
     }
   }
-  // Flight text records are byte-length-prefixed, not newline-delimited. A
-  // creature's JSON can start immediately after a long HTML text record.
-  const bytes = new TextEncoder().encode(stream);
-  const decoder = new TextDecoder();
-  let offset = 0;
-  while (offset < bytes.length) {
-    const header = decoder.decode(bytes.subarray(offset, offset + 64))
-      .match(/^[0-9a-f]+:T([0-9a-f]+),/i);
-    if (header) {
-      const length = Number.parseInt(header[1], 16);
-      if (!Number.isSafeInteger(length) || offset + header[0].length + length > bytes.length) break;
-      offset += header[0].length + length;
-      continue;
-    }
-    const end = bytes.indexOf(10, offset);
-    const line = decoder.decode(bytes.subarray(offset, end < 0 ? bytes.length : end));
+  for (const line of stream.split('\n')) {
     const record = line.match(/^[0-9a-f]+:([\[{].*)$/i);
     if (record) try { objects.push(JSON.parse(record[1])); } catch { /* non-JSON flight record */ }
-    offset = end < 0 ? bytes.length : end + 1;
   }
   return objects;
 }
