@@ -59,6 +59,7 @@
       }
       get('url').value = result.source;
       get('source').href = result.source;
+      get('source').textContent = result.related ? result.name + ' artwork on Demiplane' : 'View on Demiplane';
       get('art-link').href = result.image;
       get('thumb').hidden = !result.thumbnail;
       img.alt = result.name + ' — creature artwork';

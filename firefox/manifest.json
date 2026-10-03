@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "AoN image populator",
+  "version": "1.1.1",
+  "description": "Shows publicly available Demiplane creature artwork beneath the creature level on Archives of Nethys.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://app.demiplane.com/*",
+    "https://2e.aonprd.com/*"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://2e.aonprd.com/Monsters.aspx*",
+        "https://2e.aonprd.com/NPCs.aspx*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "aon-image-populator@extensions.local",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  }
+}
